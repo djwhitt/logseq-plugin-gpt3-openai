@@ -116,7 +116,7 @@ export async function runGptBlock(b: IHookEvent) {
     );
 
     if (!result) {
-      logseq.App.showMsg("No OpenAI content", "warning");
+      logseq.UI.showMsg("No OpenAI content", "warning");
       return;
     }
   } catch (e: any) {
@@ -132,7 +132,7 @@ export async function runGptPage(b: IHookEvent) {
   const currentBlock = await logseq.Editor.getBlock(b.uuid);
 
   if (pageContents.length === 0) {
-    logseq.App.showMsg("Empty Content", "warning");
+    logseq.UI.showMsg("Empty Content", "warning");
     console.warn("Blank page");
     return;
   }
