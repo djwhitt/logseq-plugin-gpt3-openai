@@ -320,6 +320,80 @@ export async function openAIWithStream(
       } else {
         return null;
       }
+    } else if (engine.startsWith("o1")) {
+      const inputMessages: OpenAI.Chat.CreateChatCompletionRequestMessage[] = [
+        { role: "user", content: input },
+      ];
+      const body = {
+        messages: inputMessages,
+        temperature: options.temperature,
+        max_tokens: options.maxTokens,
+        top_p: 1,
+        frequency_penalty: 0,
+        presence_penalty: 0,
+        model: engine,
+        stream: true,
+      };
+      const response = await backOff(
+        () =>
+          fetch(`${options.completionEndpoint}/chat/completions`, {
+            method: "POST",
+            body: JSON.stringify(body),
+            headers: {
+              Authorization: `Bearer ${options.apiKey}`,
+              "Content-Type": "application/json",
+              Accept: "text/event-stream",
+            },
+          }).then((response) => {
+            if (response.ok && response.body) {
+              const reader = response.body
+                .pipeThrough(new TextDecoderStream())
+                .getReader();
+
+              let result = "";
+              const readStream = (): any =>
+                reader.read().then(({ value, done }) => {
+                  if (done) {
+                    reader.cancel();
+                    onStop();
+                    return Promise.resolve({
+                      choices: [{ message: { content: result } }],
+                    });
+                  }
+
+                  const data = getDataFromStreamValue(value);
+                  if (!data || !data[0]) {
+                    return readStream();
+                  }
+
+                  let res = "";
+                  for (let i = 0; i < data.length; i++) {
+                    res += data[i].choices[0]?.delta?.content || "";
+                  }
+                  result += res;
+                  onContent(res);
+                  return readStream();
+                });
+              return readStream();
+            } else {
+              return Promise.reject(response);
+            }
+          }),
+        retryOptions,
+      );
+      const choices = (response as OpenAI.Chat.Completions.ChatCompletion)
+        ?.choices;
+      if (
+        choices &&
+        choices[0] &&
+        choices[0].message &&
+        choices[0].message.content &&
+        choices[0].message.content.length > 0
+      ) {
+        return trimLeadingWhitespace(choices[0].message.content);
+      } else {
+        return null;
+      }
     } else {
       const body = {
         prompt: input,
