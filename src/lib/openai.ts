@@ -158,7 +158,11 @@ export async function openAIWithStream(
   const engine = options.completionEngine!;
 
   try {
-    if (engine.startsWith("gpt-3.5") || engine.startsWith("gpt-4")) {
+    if (
+      engine.startsWith("claude") ||
+      engine.startsWith("gpt-3.5") ||
+      engine.startsWith("gpt-4")
+    ) {
       const inputMessages: OpenAI.Chat.CreateChatCompletionRequestMessage[] = [
         { role: "user", content: input },
       ];
