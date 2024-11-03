@@ -33,16 +33,15 @@ export async function loadUserCommands() {
 `;
 
   const templateContentsResults = await logseq.DB.datascriptQuery(
-    templatesContentsQuery
+    templatesContentsQuery,
   );
   const templateContents = new Map<number, string>();
   for (const result of templateContentsResults) {
     const content = extractCodeblock(result[0].content);
     templateContents.set(result[0].parent.id, content);
   }
-  const customTemplatesResults = await logseq.DB.datascriptQuery(
-    templatesQuery
-  );
+  const customTemplatesResults =
+    await logseq.DB.datascriptQuery(templatesQuery);
   let customCommands = new Array<Command>();
 
   for (const result of customTemplatesResults) {
@@ -52,6 +51,7 @@ export async function loadUserCommands() {
       customCommands.push({
         type: type,
         name: type,
+        completionEngine: result[0].properties["prompt-model"],
         temperature: Number(result[0].properties["prompt-temperature"]),
         prompt: prompt,
       });

@@ -9,10 +9,12 @@ import { LoadingResult } from "./components/LoadingResult";
 import { ErrorResult } from "./components/ErrorResult";
 import { SuccessResult } from "./components/SuccessResult";
 
+// TODO: add system prompt
 export interface Command {
   type: string;
   name: string;
   prompt: string;
+  completionEngine?: string;
   temperature?: number;
   shortcut?: string;
 }
@@ -35,7 +37,10 @@ export interface ErrorState {
 
 interface LogseqAIProps {
   commands: Command[];
-  handleCommand: (command: Command, onContent: (content:string) => void) => Promise<string>;
+  handleCommand: (
+    command: Command,
+    onContent: (content: string) => void,
+  ) => Promise<string>;
   onInsert: (text: string) => void;
   onReplace: (text: string) => void;
   onClose: () => void;
@@ -93,7 +98,7 @@ export const LogseqAI = ({
         reset();
       }
     },
-    [commandState]
+    [commandState],
   );
 
   useEffect(() => {
